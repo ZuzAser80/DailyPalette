@@ -1,6 +1,8 @@
 package com.zuzaser.dailypalette.viewmodel
 
+import android.os.Build
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,18 +18,19 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.ViewModel
 
 class PaletteViewModel : ViewModel() {
+    @RequiresApi(Build.VERSION_CODES.O)
     @Composable
     fun GetView(string: String) {
         val r = rememberSaveable  { mutableStateOf(string) }
-        //println("PIDER: $string : $r")
         AndroidView(factory = { context ->
             TextView(context).apply {
-                setTextColor(Color(0xFF333399).toArgb())
+                setTextColor(Color(0xFFCCCC99).toArgb())
             }
         },
             update = {
                 it.text = r.value
-                it.setTextColor(Color(0xFF000000).toArgb())
+                var clr = Color(android.graphics.Color.parseColor(r.value))
+                it.setTextColor(android.graphics.Color.valueOf((255 - (clr.red * 255).toFloat()).coerceIn(0f, 255f), (255 - (clr.green * 255).toFloat()).coerceIn(0f, 255f), (255 - (clr.blue * 255).toFloat()).coerceIn(0f, 255f), clr.alpha).toArgb())
             },
             modifier = Modifier
                 .padding(12.dp)
