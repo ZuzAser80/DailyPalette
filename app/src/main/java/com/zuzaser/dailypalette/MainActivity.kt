@@ -1,13 +1,17 @@
 package com.zuzaser.dailypalette
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -30,6 +34,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.setValue
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,17 +49,17 @@ class MainActivity : ComponentActivity() {
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Button(
+                        onClick = { showDialog = generateRandomPalette() },
+                        shape = RoundedCornerShape(25.dp),
+                    ) {
+                        Text("Generate Palette", fontSize = 25.sp)
+                    }
                     for (i in showDialog.getColors()) {
                         key(i) {
                             PaletteViewModel().GetView(i)
                         }
                     }
-                }
-                Button(
-                    onClick = { showDialog = generateRandomPalette() },
-                    shape = RoundedCornerShape(25.dp)
-                ) {
-                    Text("Generate Palette", fontSize = 25.sp)
                 }
             }
         }
