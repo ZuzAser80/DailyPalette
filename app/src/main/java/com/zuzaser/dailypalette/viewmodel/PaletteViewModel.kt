@@ -1,15 +1,12 @@
 package com.zuzaser.dailypalette.viewmodel
 
-import android.view.View
 import android.widget.TextView
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -21,7 +18,7 @@ import androidx.lifecycle.ViewModel
 class PaletteViewModel : ViewModel() {
     @Composable
     fun GetView(string: String) {
-        val r = remember { mutableStateOf(string) }
+        val r = rememberSaveable  { mutableStateOf(string) }
         //println("PIDER: $string : $r")
         AndroidView(factory = { context ->
             TextView(context).apply {
@@ -29,7 +26,7 @@ class PaletteViewModel : ViewModel() {
             }
         },
             update = {
-                it.text = "${r.value}"
+                it.text = r.value
                 it.setTextColor(Color(0xFF000000).toArgb())
             },
             modifier = Modifier

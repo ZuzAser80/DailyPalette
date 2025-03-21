@@ -24,36 +24,36 @@ import com.zuzaser.dailypalette.model.PaletteModel
 import com.zuzaser.dailypalette.ui.theme.DailyPaletteTheme
 import com.zuzaser.dailypalette.viewmodel.PaletteViewModel
 import kotlin.random.Random
+//IMPORTANT
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.setValue
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        var paletteModel : PaletteModel = PaletteModel(1, "#507255", "#488B49", "#4AAD52", "#6EB257", "#C5E063", "#40476D", "name")
         setContent() {
-            val showDialog = remember { mutableStateOf(false) }
+            var showDialog by remember { mutableStateOf(generateRandomPalette()) }
             DailyPaletteTheme {
-                if (showDialog.value) {
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(25.dp)
-                            ,
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ){
-                        for (i in paletteModel.getColors()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(25.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    for (i in showDialog.getColors()) {
+                        key(i) {
                             PaletteViewModel().GetView(i)
                         }
-                        Button(onClick = { showDialog.value = false; paletteModel = generateRandomPalette(); return@Button; }) { }
-
                     }
-                    //
                 }
-                Button(onClick = { paletteModel = generateRandomPalette(); showDialog.value = true; },
-                    shape = RoundedCornerShape(25.dp)) {
+                Button(
+                    onClick = { showDialog = generateRandomPalette() },
+                    shape = RoundedCornerShape(25.dp)
+                ) {
                     Text("Generate Palette", fontSize = 25.sp)
                 }
             }
@@ -61,38 +61,17 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-//DailyPaletteTheme {
-//    println(" ::::: " + showDialog.color0)
-//    if (showDialog != paletteModel) {
-//        Column(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(25.dp),
-//            verticalArrangement = Arrangement.Center,
-//            horizontalAlignment = Alignment.CenterHorizontally
-//        ) {
-//            for (i in showDialog.getColors()) {
-//                PaletteViewModel().GetView(i)
-//            }
-//            //Button(onClick = { showDialog.value = false; paletteModel = generateRandomPalette(); return@Button; showDialog.value = true; }) { }
-//        }
-//    }
-//    Button(onClick = { showDialog = generateRandomPalette(); },
-//        shape = RoundedCornerShape(25.dp)) {
-//        Text("Generate Palette", fontSize = 25.sp)
-//    }
-//}
-
 fun generateRandomPalette() : PaletteModel {
-    var id = Random.nextInt(255)
-    var name = String.format("%06X", Random.nextInt(0xFFFFFF + 1))
-    var color0 = String.format("#%06X", Random.nextInt(0xFFFFFF + 1))
-    var color1 = String.format("#%06X", Random.nextInt(0xFFFFFF + 1))
-    var color2 = String.format("#%06X", Random.nextInt(0xFFFFFF + 1))
-    var color3 = String.format("#%06X", Random.nextInt(0xFFFFFF + 1))
-    var color4 = String.format("#%06X", Random.nextInt(0xFFFFFF + 1))
-    var color5 = String.format("#%06X", Random.nextInt(0xFFFFFF + 1))
-    return PaletteModel(id, color0, color1, color2, color3, color4, color5, name)
+    return PaletteModel(
+        Random.nextInt(255),
+        String.format("#%06X", Random.nextInt(0xFFFFFF + 1)),
+        String.format("#%06X", Random.nextInt(0xFFFFFF + 1)),
+        String.format("#%06X", Random.nextInt(0xFFFFFF + 1)),
+        String.format("#%06X", Random.nextInt(0xFFFFFF + 1)),
+        String.format("#%06X", Random.nextInt(0xFFFFFF + 1)),
+        String.format("#%06X", Random.nextInt(0xFFFFFF + 1)),
+        String.format("%06X", Random.nextInt(0xFFFFFF + 1))
+    )
 }
 
 @Composable
