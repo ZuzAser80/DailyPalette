@@ -1,6 +1,7 @@
 package com.zuzaser.dailypalette
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +34,8 @@ import kotlin.random.Random
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
@@ -42,22 +46,50 @@ class MainActivity : ComponentActivity() {
         setContent() {
             var showDialog by remember { mutableStateOf(generateRandomPalette()) }
             DailyPaletteTheme {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(25.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Button(
-                        onClick = { showDialog = generateRandomPalette() },
-                        shape = RoundedCornerShape(25.dp),
+                Scaffold {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        verticalArrangement = Arrangement.SpaceEvenly,
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("Generate Palette", fontSize = 25.sp)
-                    }
-                    for (i in showDialog.getColors()) {
-                        key(i) {
-                            PaletteViewModel().GetView(i)
+                        for (i in showDialog.getColors()) {
+                            key(i) {
+                                PaletteViewModel().GetView(i)
+                            }
+                        }
+                        Row {
+                            //Share button
+                            val context = LocalContext.current
+                            Button(
+                                onClick = {
+                                    val type = "text/plain"
+                                    val subject = "Check out this palette!"
+                                    val extraText = showDialog.getColors().joinToString(separator = ", ")
+                                    val shareWith = "ShareWith"
+                                    val intent = Intent(Intent.ACTION_SEND)
+                                    intent.type = type
+                                    intent.putExtra(Intent.EXTRA_SUBJECT, subject)
+                                    intent.putExtra(Intent.EXTRA_TEXT, extraText)
+                                    ContextCompat.startActivity(
+                                        context,
+                                        Intent.createChooser(intent, shareWith),
+                                        null
+                                    )
+                                },
+                                shape = RoundedCornerShape(25.dp),
+
+                                ) {
+                                Text("Share", fontSize = 15.sp)
+                            }
+                            //Generate new Palette Button
+                            Button(
+                                onClick = { showDialog = generateRandomPalette() },
+                                shape = RoundedCornerShape(25.dp),
+
+                            ) {
+                                Text("Generate Palette", fontSize = 15.sp)
+                            }
                         }
                     }
                 }
@@ -77,20 +109,4 @@ fun generateRandomPalette() : PaletteModel {
         String.format("#%06X", Random.nextInt(0xFFFFFF + 1)),
         String.format("%06X", Random.nextInt(0xFFFFFF + 1))
     )
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    DailyPaletteTheme {
-        Greeting("Android")
-    }
 }

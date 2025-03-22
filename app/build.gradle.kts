@@ -66,4 +66,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     annotationProcessor(libs.androidx.room.room.compiler)
     ksp(libs.androidx.room.room.compiler)
+
+    implementation ("androidx.compose.material3:material3:1.1.1")
+    implementation ("androidx.compose.material3:material3-window-size-class:1.1.1")
 }
