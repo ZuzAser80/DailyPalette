@@ -1,5 +1,6 @@
 package com.zuzaser.dailypalette.repository
 
+import androidx.lifecycle.LiveData
 import com.zuzaser.dailypalette.model.PaletteModel
 import com.zuzaser.dailypalette.room.PaletteDao
 import kotlinx.coroutines.CoroutineScope
@@ -11,11 +12,10 @@ class PaletteRepository (private val dao : PaletteDao) {
 
     fun addPalette(paletteModel : PaletteModel) {
         coroutineScope.launch(Dispatchers.IO) {
+            println("ADDED PALETTE: " + paletteModel.id + " : " + paletteModel.name + " : " + paletteList.value)
             dao.add(paletteModel)
         }
     }
 
-    fun getAll() : List<PaletteModel> {
-        return dao.getAllPalettes()
-    }
+    val paletteList: LiveData<List<PaletteModel>> = dao.getAllPalettes()
 }

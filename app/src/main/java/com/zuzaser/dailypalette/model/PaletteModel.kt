@@ -5,7 +5,8 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "palettes")
 data class PaletteModel (
-    @PrimaryKey val id: Int,
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
     val color0: String,
     val color1: String,
     val color2: String,
@@ -14,6 +15,7 @@ data class PaletteModel (
     val color5: String,
     val name : String
 ) {
+
     fun getColors() : List<String> {
         return listOf(color0, color1, color2, color3, color4, color5)
     }

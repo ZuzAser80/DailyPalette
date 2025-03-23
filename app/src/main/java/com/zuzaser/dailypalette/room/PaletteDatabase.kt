@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.zuzaser.dailypalette.model.PaletteModel
 
-@Database(entities = [PaletteModel::class], version = 1, exportSchema = false)
+@Database(entities = [PaletteModel::class], version = 2, exportSchema = false)
 abstract class PaletteDatabase : RoomDatabase() {
 
     abstract fun loginDao() : PaletteDao
