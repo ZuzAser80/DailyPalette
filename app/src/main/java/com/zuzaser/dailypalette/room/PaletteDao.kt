@@ -15,4 +15,10 @@ interface PaletteDao {
 
     @Query("SELECT * FROM palettes")
     fun getAllPalettes(): LiveData<List<PaletteModel>>
+
+    @Query("DELETE FROM palettes")
+    fun nukeTable()
+
+    @Query("DELETE FROM palettes WHERE id = :id")
+    fun removePalette(id : Int);
 }

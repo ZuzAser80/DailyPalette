@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +18,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -37,20 +40,28 @@ import kotlin.random.Random
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Observer
 import com.zuzaser.dailypalette.repository.PaletteRepository
 import com.zuzaser.dailypalette.room.PaletteDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import java.util.UUID
 import kotlin.random.nextInt
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -58,7 +69,12 @@ class MainActivity : ComponentActivity() {
         val paletteDb = PaletteDatabase.getInstance(application)
         val paletteDao = paletteDb.loginDao()
         val repository: PaletteRepository = PaletteRepository(paletteDao)
-
+        var paletteList : List<PaletteModel> = emptyList()
+        repository.paletteList.observe(this, Observer { palettes ->
+            palettes?.let {
+                // Update the UI with the list of palettes
+                paletteList = palettes;
+            }})
         setContent {
             var currentPalette by remember { mutableStateOf(generateRandomPalette()) }
             var isSavedOpened by remember { mutableStateOf(false) }
@@ -71,20 +87,13 @@ class MainActivity : ComponentActivity() {
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Box(Modifier.background(Color.Green).fillMaxWidth())
-                    if (repository.paletteList.value != null) {
-                        for (palette in repository.paletteList.value!!) {
-                            PaletteRow(palette)
-                        }
-                    } else {
-                        PaletteRow(currentPalette)
-                    }
-                    Button(
-                        onClick = { isSavedOpened = false },
-                        shape = RoundedCornerShape(25.dp),
-                    ) {
-                        Text("Back", fontSize = 15.sp)
-                    }
+                    PaletteRow(currentPalette, repository)
+                }
+                Button(
+                    onClick = { isSavedOpened = false },
+                    shape = RoundedCornerShape(25.dp),
+                ) {
+                    Text("Back", fontSize = 15.sp)
                 }
             } else {
                 Scaffold {
@@ -139,8 +148,9 @@ class MainActivity : ComponentActivity() {
                                 Text("Save", fontSize = 12.sp)
                             }
                             //Open saved palettes
+
                             Button(
-                                onClick = { isSavedOpened = true; },
+                                onClick = { println("NIGGA: " + paletteList.count()); isSavedOpened = true; },
                                 shape = RoundedCornerShape(25.dp),
                             ) {
                                 Text("See saved", fontSize = 8.sp)
@@ -154,16 +164,19 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun PaletteRow(paletteModel: PaletteModel) {
-    Row(modifier = Modifier.fillMaxWidth()) {
-        Box(
-            modifier = Modifier
-                .background(
-                    Color.Green
-                ).fillMaxWidth()
-        )
+fun PaletteRow(paletteModel: PaletteModel, repository: PaletteRepository) {
+
+    Row{
+        for (color in paletteModel.getColors()) {
+            Box(modifier = Modifier.background(Color(android.graphics.Color.parseColor(color)),
+                shape = RoundedCornerShape(20.dp)).height(50.dp)
+                .weight(1f))
+        }
         Button(onClick = {}, shape = RoundedCornerShape(25.dp)) {
             Text("Open", fontSize = 15.sp)
+        }
+        Button(onClick = { repository.removePaletteById(paletteModel) }, shape = RoundedCornerShape(25.dp)) {
+            Text("X", fontSize = 15.sp)
         }
     }
 }

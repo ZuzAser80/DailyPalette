@@ -12,9 +12,12 @@ class PaletteRepository (private val dao : PaletteDao) {
 
     fun addPalette(paletteModel : PaletteModel) {
         coroutineScope.launch(Dispatchers.IO) {
-            println("ADDED PALETTE: " + paletteModel.id + " : " + paletteModel.name + " : " + paletteList.value)
             dao.add(paletteModel)
         }
+    }
+
+    fun removePaletteById(paletteModel: PaletteModel) {
+        dao.removePalette(paletteModel.id)
     }
 
     val paletteList: LiveData<List<PaletteModel>> = dao.getAllPalettes()
