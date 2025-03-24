@@ -2,10 +2,10 @@ package com.zuzaser.dailypalette.room
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Update
 import com.zuzaser.dailypalette.model.PaletteModel
 
 @Dao
@@ -17,8 +17,8 @@ interface PaletteDao {
     fun getAllPalettes(): LiveData<List<PaletteModel>>
 
     @Query("DELETE FROM palettes")
-    fun nukeTable()
+    fun removeAll()
 
-    @Query("DELETE FROM palettes WHERE id = :id")
-    fun removePalette(id : Int);
+    @Delete
+    fun removePalette(paletteModel: PaletteModel)
 }

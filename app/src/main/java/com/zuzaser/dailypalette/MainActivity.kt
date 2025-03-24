@@ -1,6 +1,7 @@
 package com.zuzaser.dailypalette
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -9,18 +10,13 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -29,7 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,6 +35,7 @@ import kotlin.random.Random
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
@@ -49,6 +45,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import com.zuzaser.dailypalette.repository.PaletteRepository
 import com.zuzaser.dailypalette.room.PaletteDatabase
@@ -69,31 +66,46 @@ class MainActivity : ComponentActivity() {
         val paletteDb = PaletteDatabase.getInstance(application)
         val paletteDao = paletteDb.loginDao()
         val repository: PaletteRepository = PaletteRepository(paletteDao)
-        var paletteList : List<PaletteModel> = emptyList()
+        var paletteList : LiveData<List<PaletteModel>> = repository.paletteList
         repository.paletteList.observe(this, Observer { palettes ->
-            palettes?.let {
-                // Update the UI with the list of palettes
-                paletteList = palettes;
-            }})
+            palettes?.let {}})
         setContent {
             var currentPalette by remember { mutableStateOf(generateRandomPalette()) }
             var isSavedOpened by remember { mutableStateOf(false) }
             if (isSavedOpened) {
+                //TODO: later figure out how to update ts dynamically
                 Column (
                     modifier = Modifier
                         .fillMaxSize()
-                        //.verticalScroll(rememberScrollState())
+                        .verticalScroll(rememberScrollState())
                     ,
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    PaletteRow(currentPalette, repository)
+                    if (paletteList.value!!.isNotEmpty()) {
+                        for (pal in paletteList.value!!) {
+                            PaletteRow(pal, repository)
+                        }
+                    }
                 }
-                Button(
-                    onClick = { isSavedOpened = false },
-                    shape = RoundedCornerShape(25.dp),
+                Row(verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    Text("Back", fontSize = 15.sp)
+                    Button(
+                        onClick = { isSavedOpened = false },
+                        shape = RoundedCornerShape(25.dp),
+
+                        ) {
+                        Text("Back", fontSize = 15.sp)
+                    }
+                    Button(
+                        onClick = { repository.clearTable(); isSavedOpened = false },
+                        shape = RoundedCornerShape(25.dp),
+
+                        ) {
+                        Text("Clear All", fontSize = 15.sp)
+                    }
                 }
             } else {
                 Scaffold {
@@ -113,20 +125,7 @@ class MainActivity : ComponentActivity() {
                             val context = LocalContext.current
                             Button(
                                 onClick = {
-                                    val type = "text/plain"
-                                    val subject = "Check out this palette!"
-                                    val extraText =
-                                        currentPalette.getColors().joinToString(separator = ", ")
-                                    val shareWith = "ShareWith"
-                                    val intent = Intent(Intent.ACTION_SEND)
-                                    intent.type = type
-                                    intent.putExtra(Intent.EXTRA_SUBJECT, subject)
-                                    intent.putExtra(Intent.EXTRA_TEXT, extraText)
-                                    ContextCompat.startActivity(
-                                        context,
-                                        Intent.createChooser(intent, shareWith),
-                                        null
-                                    )
+                                    sharePaletteIntent(currentPalette, context)
                                 },
                                 shape = RoundedCornerShape(25.dp),
 
@@ -150,7 +149,7 @@ class MainActivity : ComponentActivity() {
                             //Open saved palettes
 
                             Button(
-                                onClick = { println("NIGGA: " + paletteList.count()); isSavedOpened = true; },
+                                onClick = { isSavedOpened = true; },
                                 shape = RoundedCornerShape(25.dp),
                             ) {
                                 Text("See saved", fontSize = 8.sp)
@@ -163,17 +162,38 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+fun sharePaletteIntent(paletteModel: PaletteModel, context : Context)
+{
+    val type = "text/plain"
+    val subject = "Check out this palette!"
+    val extraText =
+        paletteModel.getColors().joinToString(separator = ", ")
+    val shareWith = "ShareWith"
+    val intent = Intent(Intent.ACTION_SEND)
+    intent.type = type
+    intent.putExtra(Intent.EXTRA_SUBJECT, subject)
+    intent.putExtra(Intent.EXTRA_TEXT, extraText)
+    context.startActivity(
+        Intent.createChooser(intent, shareWith),
+        null
+    )
+}
+
 @Composable
 fun PaletteRow(paletteModel: PaletteModel, repository: PaletteRepository) {
-
     Row{
+        val context = LocalContext.current
         for (color in paletteModel.getColors()) {
-            Box(modifier = Modifier.background(Color(android.graphics.Color.parseColor(color)),
-                shape = RoundedCornerShape(20.dp)).height(50.dp)
+            Box(modifier = Modifier
+                .background(
+                    Color(android.graphics.Color.parseColor(color)),
+                    shape = RoundedCornerShape(20.dp)
+                )
+                .height(50.dp)
                 .weight(1f))
         }
-        Button(onClick = {}, shape = RoundedCornerShape(25.dp)) {
-            Text("Open", fontSize = 15.sp)
+        Button(onClick = { sharePaletteIntent(paletteModel, context) }, shape = RoundedCornerShape(25.dp)) {
+            Text("Share", fontSize = 15.sp)
         }
         Button(onClick = { repository.removePaletteById(paletteModel) }, shape = RoundedCornerShape(25.dp)) {
             Text("X", fontSize = 15.sp)

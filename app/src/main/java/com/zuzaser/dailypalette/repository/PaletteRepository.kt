@@ -17,7 +17,15 @@ class PaletteRepository (private val dao : PaletteDao) {
     }
 
     fun removePaletteById(paletteModel: PaletteModel) {
-        dao.removePalette(paletteModel.id)
+        coroutineScope.launch(Dispatchers.IO) {
+            dao.removePalette(paletteModel)
+        }
+    }
+
+    fun clearTable() {
+        coroutineScope.launch(Dispatchers.IO) {
+            dao.removeAll()
+        }
     }
 
     val paletteList: LiveData<List<PaletteModel>> = dao.getAllPalettes()
