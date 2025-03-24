@@ -29,7 +29,7 @@ class PaletteViewModel : ViewModel() {
         AndroidView(factory = { context ->
             TextView(context).apply {
                 // 15 seems to be the best magic number here, works (should) on most devices
-                textSize = c.screenHeightDp.dp.value / 15f
+                textSize = c.screenHeightDp.dp.value / 20f
             }
         },
             update = {
