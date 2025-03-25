@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -59,14 +60,20 @@ class MainActivity : ComponentActivity() {
         val paletteDb = PaletteDatabase.getInstance(application)
         val paletteDao = paletteDb.loginDao()
         val repository: PaletteRepository = PaletteRepository(paletteDao)
-        var paletteList : LiveData<List<PaletteModel>> = repository.paletteList
-        repository.paletteList.observe(this, Observer { palettes ->
-            palettes?.let {}})
+
         setContent {
             var currentPalette by remember { mutableStateOf(generateRandomPalette()) }
             var isSavedOpened by remember { mutableStateOf(false) }
+            var paletteList : LiveData<List<PaletteModel>> = repository.paletteList
+            repository.paletteList.observe(this, Observer { palettes ->
+                palettes?.let {
+                    //crutch, find a better way later
+                    if(isSavedOpened) {
+                        isSavedOpened = false
+                        isSavedOpened = true
+                    }
+                }})
             if (isSavedOpened) {
-                //TODO: later figure out how to update ts dynamically
                 Column (
                     modifier = Modifier
                         .fillMaxSize()
@@ -76,9 +83,15 @@ class MainActivity : ComponentActivity() {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     if (paletteList.value!!.isNotEmpty()) {
-                        for (pal in paletteList.value!!) {
-                            PaletteRow(pal, repository)
+                        key(paletteList) {
+                            for (pal in paletteList.value!!) {
+                                key(pal) {
+                                    PaletteRow(pal, repository)
+                                }
+                            }
                         }
+                    } else {
+                        Text("Похоже, что вы не сохранили ни одной палитры...")
                     }
                 }
                 Row(verticalAlignment = Alignment.Bottom,
